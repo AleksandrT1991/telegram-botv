@@ -4,6 +4,7 @@ import com.pengrad.telegrambot.TelegramBot;
 import com.pengrad.telegrambot.UpdatesListener;
 import com.pengrad.telegrambot.model.Update;
 import com.pengrad.telegrambot.request.SendMessage;
+import lombok.RequiredArgsConstructor;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -15,15 +16,12 @@ import java.util.List;
 import java.util.Objects;
 
 @Service
+@RequiredArgsConstructor
 public class TelegramBotUpdatesListener implements UpdatesListener {
 
-    private Logger logger = LoggerFactory.getLogger(TelegramBotUpdatesListener.class);
-
-    @Autowired
-    private MessageProcessor messageProcessor;
-
-    @Autowired
-    private TelegramBot telegramBot;
+    private final Logger logger = LoggerFactory.getLogger(TelegramBotUpdatesListener.class);
+    private final MessageProcessor messageProcessor;
+    private final TelegramBot telegramBot;
 
     @PostConstruct
     public void init() {

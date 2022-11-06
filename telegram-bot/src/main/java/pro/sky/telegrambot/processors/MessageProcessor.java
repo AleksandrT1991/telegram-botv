@@ -1,6 +1,7 @@
 package pro.sky.telegrambot.processors;
 
 import com.pengrad.telegrambot.model.Update;
+import lombok.RequiredArgsConstructor;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -19,14 +20,15 @@ import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
 @Component
+@RequiredArgsConstructor
 public class MessageProcessor {
-    private static final String REMIND = "\\/remind [0-9]{2}.[0-9]{2}.[0-9]{4} [0-9]{2}.[0-9]{2} [\\s\\S]+";
+    public static final Pattern PATTERN = Pattern.compile("\\/remind [0-9]{2}.[0-9]{2}.[0-9]{4} [0-9]{2}.[0-9]{2} [\\s\\S]+");
     private static final String TEXT = " [\\s\\D]+";
-    private static final String DATETIME = " [0-9]{2}.[0-9]{2}.[0-9]{4} [0-9]{2}.[0-9]{2}";
-    private Logger logger = LoggerFactory.getLogger(MessageProcessor.class);
-
-    @Autowired
-    private RemindRepository repository;
+    public static final Pattern TEXT_PATTERN = Pattern.compile(TEXT);
+    public static final Pattern DATETIME = Pattern.compile(" [0-9]{2}.[0-9]{2}.[0-9]{4} [0-9]{2}.[0-9]{2}");
+    public static final SimpleDateFormat SIMPLE_DATE_FORMAT = new SimpleDateFormat("dd.MM.yyyy mm.HH");
+    private final Logger logger = LoggerFactory.getLogger(MessageProcessor.class);
+    private final RemindRepository repository;
 
     public String process(Update update) {
         logger.info("Запускам метод");
@@ -34,7 +36,7 @@ public class MessageProcessor {
             String inputMessage = update.message().text();
             logger.info("Входящее сообщение {}", inputMessage);
             //   /remind 31.11.2022 12.30 Сделай ДЗ
-            if (Pattern.compile(REMIND).matcher(inputMessage).matches()){
+            if (PATTERN.matcher(inputMessage).matches()){
                 logger.info("Сохраняем в базу напоминание");
                 repository.save(generateEntity(update));
             }
@@ -45,7 +47,6 @@ public class MessageProcessor {
     private RemindEntity generateEntity(Update update) {
         RemindEntity remindEntity = new RemindEntity();
         remindEntity.setChatid(update.message().chat().id());
-        remindEntity.setId(UUID.randomUUID().toString());
         remindEntity.setText(getText(update.message().text()));
         remindEntity.setTime(getTime(update.message().text()));
         logger.info("Remind Entity {}", remindEntity);
@@ -53,10 +54,10 @@ public class MessageProcessor {
     }
 
     public Instant getTime(String text) {
-        Matcher matcher = Pattern.compile(DATETIME).matcher(text);
+        Matcher matcher = DATETIME.matcher(text);
         if (matcher.find()) {
             try {
-                return new SimpleDateFormat("dd.MM.yyyy mm.HH").parse(matcher.group(0)).toInstant();
+                return SIMPLE_DATE_FORMAT.parse(matcher.group(0)).toInstant();
             } catch (ParseException e) {
                 logger.error("Произошла ошибка во время парсинга текста в дату");
             }
@@ -65,7 +66,7 @@ public class MessageProcessor {
     }
 
     public String getText(String text) {
-        Matcher matcher = Pattern.compile(TEXT).matcher(text);
+        Matcher matcher = TEXT_PATTERN.matcher(text);
         if (matcher.find()) {
             return matcher.group(0);
         }

@@ -1,15 +1,15 @@
 package pro.sky.telegrambot.repository.entity;
 
-import javax.persistence.Entity;
-import javax.persistence.Id;
-import javax.persistence.Table;
+import javax.persistence.*;
 import java.time.Instant;
 
 @Entity
 @Table(name = "remind")
 public class RemindEntity {
     @Id
-    private String id;
+    @GeneratedValue(strategy = GenerationType.AUTO)
+    @Column (name = "id", nullable = false)
+    private Long id;
     private String text;
     private Instant time;
     private Long chatid;
@@ -38,11 +38,11 @@ public class RemindEntity {
         this.time = time;
     }
 
-    public String getId() {
+    public Long getId() {
         return id;
     }
 
-    public void setId(String id) {
+    public void setId(Long id) {
         this.id = id;
     }
 
