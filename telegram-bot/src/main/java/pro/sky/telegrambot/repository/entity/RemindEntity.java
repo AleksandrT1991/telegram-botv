@@ -2,6 +2,7 @@ package pro.sky.telegrambot.repository.entity;
 
 import javax.persistence.*;
 import java.time.Instant;
+import java.time.LocalDateTime;
 
 @Entity
 @Table(name = "remind")
@@ -11,7 +12,7 @@ public class RemindEntity {
     @Column (name = "id", nullable = false)
     private Long id;
     private String text;
-    private Instant time;
+    private LocalDateTime time;
     private Long chatid;
 
     public Long getChatid() {
@@ -30,11 +31,11 @@ public class RemindEntity {
         this.text = text;
     }
 
-    public Instant getTime() {
+    public LocalDateTime getTime() {
         return time;
     }
 
-    public void setTime(Instant time) {
+    public void setTime(LocalDateTime time) {
         this.time = time;
     }
 

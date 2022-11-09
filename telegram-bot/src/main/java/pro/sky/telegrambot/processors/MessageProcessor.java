@@ -14,6 +14,10 @@ import pro.sky.telegrambot.repository.entity.RemindEntity;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
 import java.time.Instant;
+import java.time.LocalDateTime;
+import java.time.format.DateTimeFormatter;
+import java.time.temporal.ChronoUnit;
+import java.util.Locale;
 import java.util.Objects;
 import java.util.UUID;
 import java.util.regex.Matcher;
@@ -25,8 +29,8 @@ public class MessageProcessor {
     public static final Pattern PATTERN = Pattern.compile("\\/remind [0-9]{2}.[0-9]{2}.[0-9]{4} [0-9]{2}.[0-9]{2} [\\s\\S]+");
     private static final String TEXT = " [\\s\\D]+";
     public static final Pattern TEXT_PATTERN = Pattern.compile(TEXT);
-    public static final Pattern DATETIME = Pattern.compile(" [0-9]{2}.[0-9]{2}.[0-9]{4} [0-9]{2}.[0-9]{2}");
-    public static final SimpleDateFormat SIMPLE_DATE_FORMAT = new SimpleDateFormat("dd.MM.yyyy mm.HH");
+    public static final Pattern DATETIME = Pattern.compile("[0-9]{2}.[0-9]{2}.[0-9]{4} [0-9]{2}.[0-9]{2}");
+    public static final DateTimeFormatter DATE_TIME_FORMATTER =  DateTimeFormatter.ofPattern("dd.MM.yyyy HH.mm", Locale.ROOT);
     private final Logger logger = LoggerFactory.getLogger(MessageProcessor.class);
     private final RemindRepository repository;
 
@@ -53,14 +57,10 @@ public class MessageProcessor {
         return remindEntity;
     }
 
-    public Instant getTime(String text) {
+    public LocalDateTime getTime(String text) {
         Matcher matcher = DATETIME.matcher(text);
         if (matcher.find()) {
-            try {
-                return SIMPLE_DATE_FORMAT.parse(matcher.group(0)).toInstant();
-            } catch (ParseException e) {
-                logger.error("Произошла ошибка во время парсинга текста в дату");
-            }
+            return LocalDateTime.parse(matcher.group(0), DATE_TIME_FORMATTER).truncatedTo(ChronoUnit.MINUTES);
         }
         return null;
     }

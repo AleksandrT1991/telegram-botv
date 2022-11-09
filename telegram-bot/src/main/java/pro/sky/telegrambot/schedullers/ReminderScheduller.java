@@ -13,11 +13,14 @@ import pro.sky.telegrambot.repository.entity.RemindEntity;
 import java.time.Instant;
 import java.time.LocalDateTime;
 import java.time.ZoneId;
+import java.time.temporal.ChronoUnit;
+import java.util.Objects;
 
 @Component
 public class ReminderScheduller {
     private Logger logger = LoggerFactory.getLogger(ReminderScheduller.class);
-
+    Instant start;
+    Instant end;
     @Autowired
     private RemindRepository repository;
 
@@ -26,27 +29,14 @@ public class ReminderScheduller {
 
     @Scheduled(cron = "0 0/1 * * * *")
     public void sendremind() {
-        Iterable<RemindEntity> all = repository.findAll();
-        LocalDateTime ltd = LocalDateTime.ofInstant(Instant.now(), ZoneId.systemDefault());
-        int day = ltd.getDayOfMonth();
-        int month = ltd.getMonthValue();
-        int year = ltd.getYear();
-        int hour = ltd.getHour();
-        int minute = ltd.getMinute();
-        logger.info("Текущее время {}.{}.{} {}.{}", day, month, year, hour, minute);
-        all.forEach(x -> {
-            LocalDateTime ltd2 = LocalDateTime.ofInstant(x.getTime(), ZoneId.systemDefault());
-            int day2 = ltd.getDayOfMonth();
-            int month2 = ltd.getMonthValue();
-            int year2 = ltd.getYear();
-            int hour2 = ltd.getHour();
-            int minute2 = ltd.getMinute();
-            logger.info("Время из напоминания {}.{}.{} {}.{}", day2, month2, year2, hour2, minute2);
-            if (day == day2 && month == month2 && year == year2 && hour == hour2 && minute == minute2) {
-                SendMessage message = new SendMessage(x.getChatid(), x.getText());
-                telegramBot.execute(message);
+        LocalDateTime ltd = LocalDateTime.now().truncatedTo(ChronoUnit.MINUTES);
+        Iterable<RemindEntity> all = repository.findByTime(ltd);
+            if (Objects.nonNull(all)) {
+                all.forEach(e -> {
+                    SendMessage message = new SendMessage(e.getChatid(), e.getText());
+                    telegramBot.execute(message);
+                });
             }
-        });
     }
 }
 //
